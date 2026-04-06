@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>외부 데이터 대시보드</title>
+  <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+</head>
+<body>
+
+<div class="dashboard-page">
+
+  <!-- 뉴스 -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">뉴스</h2>
+    </div>
+
+    <div th:if="${#lists.isEmpty(dashboard.newsList)}" class="empty-message">
+      표시할 뉴스가 없습니다.
+    </div>
+
+    <div th:unless="${#lists.isEmpty(dashboard.newsList)}" class="news-grid">
+      <a th:each="news : ${dashboard.newsList}"
+         th:href="${news.link}"
+         target="_blank"
+         class="news-card">
+        <div class="news-image-box">
+          <img th:if="${news.imageUrl != null and !news.imageUrl.isEmpty()}"
+               th:src="${news.imageUrl}"
+               alt="뉴스 이미지"
+               class="news-image">
+          <div th:if="${news.imageUrl == null or news.imageUrl.isEmpty()}"
+               class="news-image-placeholder">
+            No Image
+          </div>
+        </div>
+        <div class="news-content">
+          <p class="news-title" th:text="${news.title}"></p>
+        </div>
+      </a>
+    </div>
+  </section>
+
+  <!-- 환율 -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">환율</h2>
+    </div>
+
+    <div th:if="${#lists.isEmpty(dashboard.exchangeRates)}" class="empty-message">
+      환율 정보를 불러오지 못했습니다.
+    </div>
+
+    <div th:unless="${#lists.isEmpty(dashboard.exchangeRates)}" class="exchange-grid">
+      <div th:each="rate : ${dashboard.exchangeRates}" class="info-card exchange-card">
+        <div class="card-label" th:text="${rate.currency}"></div>
+
+        <div class="card-value"
+             th:text="${#numbers.formatDecimal(rate.baseRate, 1, 2, 'COMMA')}"></div>
+
+        <div class="card-change up" th:if="${rate.direction == 'UP'}">
+          ▲
+          <span th:text="${#numbers.formatDecimal(rate.change, 1, 2, 'COMMA')}"></span>
+          (<span th:text="${#numbers.formatDecimal(rate.changeRate, 1, 2)}"></span>%)
+        </div>
+
+        <div class="card-change down" th:if="${rate.direction == 'DOWN'}">
+          ▼
+          <span th:text="${#numbers.formatDecimal(rate.change.abs(), 1, 2, 'COMMA')}"></span>
+          (<span th:text="${#numbers.formatDecimal(rate.changeRate.abs(), 1, 2)}"></span>%)
+        </div>
+
+        <div class="card-change same" th:if="${rate.direction == 'SAME' || rate.direction == 'NONE'}">
+          변동 없음
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 주가 지수 -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">주가 지수</h2>
+    </div>
+
+    <div class="stock-grid">
+      <div class="info-card stock-card">
+        <div class="card-label">코스피</div>
+
+        <div th:if="${#lists.isEmpty(dashboard.kospi.points)}" class="empty-message small">
+          주가 데이터를 불러오지 못했습니다.
+        </div>
+
+        <div th:unless="${#lists.isEmpty(dashboard.kospi.points)}">
+          <div class="card-value"
+               th:text="${#numbers.formatDecimal(dashboard.kospi.summary.current, 1, 2, 'COMMA')}"></div>
+
+          <div class="card-change"
+               th:classappend="${dashboard.kospi.summary.change > 0} ? 'up' : (${dashboard.kospi.summary.change < 0} ? 'down' : 'same')">
+            <span th:text="${dashboard.kospi.summary.change > 0 ? '▲' : (dashboard.kospi.summary.change < 0 ? '▼' : '-')}"></span>
+            <span th:text="${#numbers.formatDecimal(dashboard.kospi.summary.change.abs(), 1, 2, 'COMMA')}"></span>
+            (<span th:text="${#numbers.formatDecimal(dashboard.kospi.summary.changeRate.abs(), 1, 2)}"></span>%)
+          </div>
+        </div>
+      </div>
+
+      <div class="info-card stock-card">
+        <div class="card-label">코스닥</div>
+
+        <div th:if="${#lists.isEmpty(dashboard.kosdaq.points)}" class="empty-message small">
+          주가 데이터를 불러오지 못했습니다.
+        </div>
+
+        <div th:unless="${#lists.isEmpty(dashboard.kosdaq.points)}">
+          <div class="card-value"
+               th:text="${#numbers.formatDecimal(dashboard.kosdaq.summary.current, 1, 2, 'COMMA')}"></div>
+
+          <div class="card-change"
+               th:classappend="${dashboard.kosdaq.summary.change > 0} ? 'up' : (${dashboard.kosdaq.summary.change < 0} ? 'down' : 'same')">
+            <span th:text="${dashboard.kosdaq.summary.change > 0 ? '▲' : (dashboard.kosdaq.summary.change < 0 ? '▼' : '-')}"></span>
+            <span th:text="${#numbers.formatDecimal(dashboard.kosdaq.summary.change.abs(), 1, 2, 'COMMA')}"></span>
+            (<span th:text="${#numbers.formatDecimal(dashboard.kosdaq.summary.changeRate.abs(), 1, 2)}"></span>%)
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 차트 -->
+  <section class="dashboard-section">
+    <div class="section-header">
+      <h2 class="section-title">지수 차트</h2>
+    </div>
+
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-title">코스피</div>
+        <div th:if="${#lists.isEmpty(dashboard.kospi.points)}" class="empty-message small">
+          주가 데이터를 불러오지 못했습니다.
+        </div>
+        <div th:unless="${#lists.isEmpty(dashboard.kospi.points)}" class="chart-container">
+          <canvas id="kospiChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">코스닥</div>
+        <div th:if="${#lists.isEmpty(dashboard.kosdaq.points)}" class="empty-message small">
+          주가 데이터를 불러오지 못했습니다.
+        </div>
+        <div th:unless="${#lists.isEmpty(dashboard.kosdaq.points)}" class="chart-container">
+          <canvas id="kosdaqChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script th:inline="javascript">
+  window.dashboardData = {
+      kospi: [[${dashboard.kospi.points}]],
+      kosdaq: [[${dashboard.kosdaq.points}]]
+  };
+</script>
+
+<script th:src="@{/js/dashboard.js}"></script>
+
+</body>
+</html>

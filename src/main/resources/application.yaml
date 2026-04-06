@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: externaldata
+
+external:
+  exchange:
+    api-key: ${EXCHANGE_API_KEY}
+  stock:
+    api-key: ${STOCK_API_KEY}
